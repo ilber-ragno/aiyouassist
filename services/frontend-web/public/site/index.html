@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AiYou Assist - Seu Assistente de IA no WhatsApp, Telegram e Webchat</title>
+  <meta name="description" content="Assistente de IA completo no WhatsApp, Telegram e Webchat para uso pessoal e profissional. Widget de chat para seu site, Base de Conhecimento inteligente, atendimento multicanal, integrações nativas com CRM, ERP e mais.">
+  <meta name="keywords" content="whatsapp, telegram, webchat, widget chat, assistente ia, inteligência artificial, base de conhecimento, atendimento multicanal, automação, crm, erp, helpdesk, saas">
+  <meta property="og:title" content="AiYou Assist - Seu Assistente de IA no WhatsApp, Telegram e Webchat">
+  <meta property="og:description" content="Assistente de IA multicanal: WhatsApp, Telegram e Webchat. Widget para seu site, Base de Conhecimento, integrações nativas, memória persistente, automação de tarefas.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://meuaiyou.cloud">
+  <meta property="og:image" content="https://meuaiyou.cloud/logo.svg">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="canonical" href="https://meuaiyou.cloud">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #10B981;
+      --primary-dark: #059669;
+      --primary-light: #34D399;
+      --secondary: #3B82F6;
+      --accent: #8B5CF6;
+      --wa-green: #25D366;
+      --orange: #F59E0B;
+      --text: #0F172A;
+      --text-light: #475569;
+      --text-lighter: #94A3B8;
+      --bg: #FFFFFF;
+      --bg-subtle: #F8FAFC;
+      --bg-muted: #F1F5F9;
+      --bg-dark: #0F172A;
+      --border: #E2E8F0;
+      --radius: 16px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.04);
+      --shadow-xl: 0 20px 50px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.06);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; display: block; }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      transition: box-shadow 0.3s;
+    }
+    .nav.scrolled { box-shadow: var(--shadow-sm); }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between; height: 72px;
+    }
+    .nav-logo {
+      font-size: 1.35rem; font-weight: 800; color: var(--primary);
+      letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px;
+    }
+    .nav-logo span { color: var(--text); }
+    .nav-logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--primary), var(--wa-green));
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: #fff;
+    }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-light); transition: color 0.2s; }
+    .nav-links a:hover { color: var(--primary); }
+    .nav-cta {
+      display: inline-flex; align-items: center; padding: 10px 22px;
+      background: var(--primary); color: #fff !important; border-radius: 10px;
+      font-weight: 600; font-size: 0.9rem; transition: background 0.2s, transform 0.15s;
+    }
+    .nav-cta:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .nav-mobile-toggle {
+      display: none; flex-direction: column; gap: 5px;
+      background: none; border: none; cursor: pointer; padding: 4px;
+    }
+    .nav-mobile-toggle span {
+      display: block; width: 24px; height: 2.5px; background: var(--text);
+      border-radius: 2px; transition: transform 0.3s, opacity 0.3s;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 140px 0 100px;
+      background: linear-gradient(160deg, #ECFDF5 0%, #F0F9FF 40%, #F5F3FF 70%, #FFF7ED 100%);
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; width: 700px; height: 700px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%);
+      top: -300px; right: -200px;
+    }
+    .hero-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+      position: relative; z-index: 1;
+    }
+    .hero-badge {
+      display: inline-block; padding: 8px 18px;
+      background: rgba(16,185,129,0.1); color: var(--primary-dark);
+      border-radius: 100px; font-size: 0.85rem; font-weight: 600; margin-bottom: 24px;
+      animation: fadeSlideUp 0.6s ease both;
+    }
+    .hero h1 {
+      font-size: 3.2rem; font-weight: 800; line-height: 1.12;
+      letter-spacing: -1.2px; color: var(--text); margin-bottom: 24px;
+      animation: fadeSlideUp 0.6s ease 0.1s both;
+    }
+    .hero h1 strong { color: var(--primary); }
+    .hero-sub {
+      font-size: 1.15rem; color: var(--text-light); line-height: 1.7;
+      margin-bottom: 36px; max-width: 520px;
+      animation: fadeSlideUp 0.6s ease 0.2s both;
+    }
+    .hero-actions {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      animation: fadeSlideUp 0.6s ease 0.3s both;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px;
+      background: var(--primary); color: #fff; border-radius: 12px;
+      font-weight: 700; font-size: 1rem; border: none; cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+    }
+    .btn-primary:hover {
+      background: var(--primary-dark); transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16,185,129,0.4);
+    }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px;
+      background: var(--bg); color: var(--text); border: 1.5px solid var(--border);
+      border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    }
+    .btn-secondary:hover {
+      border-color: var(--primary); color: var(--primary); transform: translateY(-2px);
+    }
+
+    /* Phone mockup */
+    .phone-mockup {
+      max-width: 380px; margin-left: auto;
+      animation: fadeSlideUp 0.7s ease 0.35s both;
+    }
+    .phone-frame {
+      background: #fff; border-radius: 28px;
+      box-shadow: var(--shadow-xl); overflow: hidden;
+      border: 6px solid #1E293B;
+    }
+    .phone-notch {
+      height: 28px; background: #1E293B;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .phone-notch-pill {
+      width: 80px; height: 6px; background: #334155; border-radius: 10px;
+    }
+    .phone-chat-header {
+      background: var(--wa-green); color: #fff; padding: 14px 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .phone-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem;
+    }
+    .phone-name { font-weight: 600; font-size: 0.9rem; }
+    .phone-status { font-size: 0.72rem; opacity: 0.85; }
+    .phone-body {
+      background: #ECE5DD; padding: 16px; min-height: 320px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .bubble {
+      max-width: 82%; padding: 10px 14px; border-radius: 12px;
+      font-size: 0.84rem; line-height: 1.5; position: relative;
+    }
+    .bubble-in { background: #fff; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .bubble-out { background: #DCF8C6; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .bubble-time { font-size: 0.62rem; color: #999; text-align: right; margin-top: 4px; }
+    .bubble-ai {
+      display: inline-block; font-size: 0.58rem; background: rgba(16,185,129,0.12);
+      color: var(--primary-dark); padding: 2px 7px; border-radius: 4px;
+      font-weight: 600; margin-bottom: 4px;
+    }
+    .typing-dots {
+      display: flex; gap: 4px; align-items: center;
+      padding: 10px 14px; background: #fff; border-radius: 12px;
+      border-bottom-left-radius: 4px; align-self: flex-start; max-width: 55px;
+    }
+    .typing-dots span {
+      width: 6px; height: 6px; background: #aaa; border-radius: 50%;
+      animation: bounce 1.4s ease infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-4px); }
+    }
+
+    /* ── Section Common ── */
+    .section { padding: 100px 0; }
+    .section-alt { background: var(--bg-subtle); }
+    .section-dark { background: var(--bg-dark); color: #fff; }
+    .section-title {
+      text-align: center; margin-bottom: 16px; font-size: 2.2rem;
+      font-weight: 800; letter-spacing: -0.8px;
+    }
+    .section-sub {
+      text-align: center; color: var(--text-light); font-size: 1.1rem;
+      max-width: 640px; margin: 0 auto 56px;
+    }
+    .section-dark .section-sub { color: #94A3B8; }
+    .section-label {
+      text-align: center; font-size: 0.85rem; font-weight: 700;
+      color: var(--primary); text-transform: uppercase;
+      letter-spacing: 1.5px; margin-bottom: 12px;
+    }
+
+    /* ── Stats ── */
+    .stats-bar {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px;
+      padding: 56px 0; text-align: center;
+    }
+    .stat-item h3 { font-size: 2.4rem; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
+    .stat-item p { font-size: 0.88rem; color: var(--text-light); font-weight: 500; margin-top: 4px; }
+
+    /* ── Benefits ── */
+    .benefits-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
+    }
+    .benefit-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 36px 28px; transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    }
+    .benefit-card:hover {
+      transform: translateY(-6px); box-shadow: var(--shadow-lg);
+      border-color: rgba(16,185,129,0.25);
+    }
+    .benefit-emoji { font-size: 2.2rem; margin-bottom: 18px; display: block; }
+    .benefit-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; }
+    .benefit-card p { font-size: 0.9rem; color: var(--text-light); line-height: 1.7; }
+
+    /* ── How it works ── */
+    .steps-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px;
+      position: relative;
+    }
+    .steps-grid::before {
+      content: ''; position: absolute; top: 44px;
+      left: calc(12.5% + 20px); right: calc(12.5% + 20px);
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent), var(--wa-green));
+      border-radius: 2px;
+    }
+    .step { text-align: center; position: relative; }
+    .step-number {
+      width: 88px; height: 88px; border-radius: 50%; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; font-weight: 800; margin: 0 auto 24px;
+      position: relative; z-index: 1;
+    }
+    .step-1 .step-number { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); box-shadow: 0 8px 24px rgba(16,185,129,0.25); }
+    .step-2 .step-number { background: linear-gradient(135deg, var(--secondary), #2563EB); box-shadow: 0 8px 24px rgba(59,130,246,0.25); }
+    .step-3 .step-number { background: linear-gradient(135deg, var(--accent), #7C3AED); box-shadow: 0 8px 24px rgba(139,92,246,0.25); }
+    .step-4 .step-number { background: linear-gradient(135deg, var(--wa-green), #059669); box-shadow: 0 8px 24px rgba(37,211,102,0.25); }
+    .step h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 0.88rem; color: var(--text-light); line-height: 1.5; }
+
+    /* ── Integrations ── */
+    .integrations-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px;
+    }
+    .integ-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 36px 32px; display: flex; gap: 20px; align-items: flex-start;
+      transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    }
+    .integ-card:hover {
+      transform: translateY(-4px); box-shadow: var(--shadow-lg);
+      border-color: rgba(16,185,129,0.25);
+    }
+    .integ-icon {
+      width: 56px; height: 56px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; flex-shrink: 0;
+    }
+    .integ-icon-green { background: rgba(16,185,129,0.1); }
+    .integ-icon-blue { background: rgba(59,130,246,0.1); }
+    .integ-icon-purple { background: rgba(139,92,246,0.1); }
+    .integ-icon-orange { background: rgba(245,158,11,0.1); }
+    .integ-icon-red { background: rgba(239,68,68,0.1); }
+    .integ-icon-teal { background: rgba(20,184,166,0.1); }
+    .integ-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+    .integ-card p { font-size: 0.88rem; color: var(--text-light); line-height: 1.6; }
+    .integ-tag {
+      display: inline-block; padding: 3px 10px; border-radius: 6px;
+      font-size: 0.7rem; font-weight: 600; margin-top: 10px;
+    }
+    .tag-active { background: rgba(16,185,129,0.1); color: var(--primary-dark); }
+    .tag-soon { background: rgba(59,130,246,0.1); color: var(--secondary); }
+
+    /* ── Channels ── */
+    .channels-row {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px;
+    }
+    .channel-card {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius); padding: 32px 20px; text-align: center;
+      transition: transform 0.25s, border-color 0.25s;
+    }
+    .channel-card:hover { transform: translateY(-4px); border-color: rgba(16,185,129,0.4); }
+    .channel-card.active { border-color: var(--primary); background: rgba(16,185,129,0.06); }
+    .channel-emoji { font-size: 2.4rem; margin-bottom: 12px; display: block; }
+    .channel-card h4 { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .channel-card p { font-size: 0.75rem; color: #64748B; }
+    .channel-badge {
+      display: inline-block; margin-top: 10px; padding: 3px 12px;
+      border-radius: 100px; font-size: 0.68rem; font-weight: 700;
+    }
+    .channel-badge-active { background: var(--primary); color: #fff; }
+    .channel-badge-soon { background: rgba(255,255,255,0.1); color: #94A3B8; }
+
+    /* ── Pricing ── */
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; align-items: start;
+    }
+    .price-card {
+      background: var(--bg); border: 1.5px solid var(--border); border-radius: 18px;
+      padding: 40px 32px; text-align: center; position: relative;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .price-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .price-card.popular {
+      border-color: var(--primary); box-shadow: var(--shadow-xl);
+      transform: scale(1.04); z-index: 2;
+    }
+    .price-card.popular:hover { transform: scale(1.04) translateY(-4px); }
+    .price-badge {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--primary), var(--wa-green));
+      color: #fff; padding: 6px 22px; border-radius: 100px;
+      font-size: 0.78rem; font-weight: 700; white-space: nowrap;
+    }
+    .price-card h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+    .price-amount { font-size: 3rem; font-weight: 800; color: var(--text); letter-spacing: -1.5px; }
+    .price-amount span { font-size: 1rem; font-weight: 500; color: var(--text-light); }
+    .price-period { color: var(--text-light); font-size: 0.88rem; margin-bottom: 28px; }
+    .price-features {
+      list-style: none; text-align: left; margin-bottom: 32px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .price-features li {
+      font-size: 0.9rem; color: var(--text-light);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .price-features li::before {
+      content: ''; display: inline-block; width: 20px; height: 20px;
+      background: rgba(16,185,129,0.1); border-radius: 50%; flex-shrink: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2310B981'%3E%3Cpath fill-rule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'/%3E%3C/svg%3E");
+      background-size: 14px; background-position: center; background-repeat: no-repeat;
+    }
+    .price-btn {
+      display: block; width: 100%; padding: 14px; border-radius: 12px;
+      font-weight: 700; font-size: 0.95rem; border: 2px solid var(--primary);
+      background: transparent; color: var(--primary); cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+    }
+    .price-btn:hover { background: var(--primary); color: #fff; transform: translateY(-2px); }
+    .price-card.popular .price-btn { background: var(--primary); color: #fff; }
+    .price-card.popular .price-btn:hover { background: var(--primary-dark); }
+
+    /* ── FAQ ── */
+    .faq-list {
+      max-width: 760px; margin: 0 auto;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .faq-item {
+      background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; transition: box-shadow 0.25s;
+    }
+    .faq-item:hover { box-shadow: var(--shadow-md); }
+    .faq-question {
+      padding: 22px 28px; font-weight: 700; font-size: 1rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+      background: none; border: none; width: 100%; text-align: left;
+      color: var(--text); font-family: inherit;
+    }
+    .faq-question::after {
+      content: '+'; font-size: 1.4rem; font-weight: 300; color: var(--text-lighter);
+      transition: transform 0.3s;
+    }
+    .faq-item.open .faq-question::after { transform: rotate(45deg); }
+    .faq-answer {
+      max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.35s ease;
+    }
+    .faq-item.open .faq-answer { max-height: 300px; }
+    .faq-answer-inner {
+      padding: 0 28px 22px; font-size: 0.92rem; color: var(--text-light); line-height: 1.7;
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      padding: 100px 0; text-align: center; color: #fff; position: relative; overflow: hidden;
+      background: linear-gradient(135deg, var(--primary) 0%, #075E54 50%, var(--primary-dark) 100%);
+    }
+    .cta-section::before {
+      content: ''; position: absolute; width: 500px; height: 500px; border-radius: 50%;
+      background: rgba(255,255,255,0.05); top: -250px; right: -100px;
+    }
+    .cta-section h2 {
+      font-size: 2.4rem; font-weight: 800; margin-bottom: 16px;
+      letter-spacing: -0.8px; position: relative; z-index: 1;
+    }
+    .cta-section p {
+      font-size: 1.15rem; opacity: 0.9; margin-bottom: 36px;
+      position: relative; z-index: 1; max-width: 560px; margin-left: auto; margin-right: auto;
+    }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 16px 40px;
+      background: #fff; color: var(--primary-dark); border-radius: 12px;
+      font-weight: 700; font-size: 1.05rem; border: none; cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15); position: relative; z-index: 1;
+    }
+    .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.2); }
+
+    /* ── Footer ── */
+    .footer { background: var(--text); color: #CBD5E1; padding: 60px 0 0; }
+    .footer-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 48px;
+    }
+    .footer-brand p { font-size: 0.88rem; line-height: 1.7; margin-top: 16px; max-width: 300px; }
+    .footer-logo { font-size: 1.25rem; font-weight: 800; color: #fff; }
+    .footer-logo span { color: var(--primary-light); }
+    .footer h4 {
+      color: #fff; font-size: 0.88rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;
+    }
+    .footer ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .footer ul a { font-size: 0.88rem; color: #94A3B8; transition: color 0.2s; }
+    .footer ul a:hover { color: #fff; }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.08); padding: 24px 0;
+      text-align: center; font-size: 0.82rem; color: #64748B;
+    }
+
+    /* ── Floating WhatsApp ── */
+    .whatsapp-float {
+      position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px;
+      background: #25D366; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 20px rgba(37,211,102,0.35); z-index: 999;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .whatsapp-float:hover { transform: scale(1.08); box-shadow: 0 8px 28px rgba(37,211,102,0.45); }
+    .whatsapp-float svg { width: 30px; height: 30px; fill: #fff; }
+
+    /* ── Animations ── */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Mobile ── */
+    .nav-mobile-menu {
+      display: none; position: absolute; top: 72px; left: 0; right: 0;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: 20px 24px; flex-direction: column; gap: 16px; box-shadow: var(--shadow-md);
+    }
+    .nav-mobile-menu.open { display: flex; }
+    .nav-mobile-menu a { font-size: 1rem; font-weight: 500; color: var(--text-light); padding: 8px 0; }
+
+    @media (max-width: 1024px) {
+      .hero h1 { font-size: 2.5rem; }
+      .benefits-grid { grid-template-columns: repeat(2, 1fr); }
+      .integrations-grid { grid-template-columns: 1fr; }
+      .channels-row { grid-template-columns: repeat(3, 1fr); }
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+      .price-card.popular { grid-column: 1 / -1; max-width: 400px; margin: 0 auto; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-mobile-toggle { display: flex; }
+      .hero { padding: 110px 0 60px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+      .hero h1 { font-size: 2.1rem; }
+      .phone-mockup { max-width: 320px; margin: 0 auto; }
+      .section { padding: 72px 0; }
+      .section-title { font-size: 1.75rem; }
+      .benefits-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+      .steps-grid::before { display: none; }
+      .channels-row { grid-template-columns: repeat(2, 1fr); }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 420px; margin-left: auto; margin-right: auto; }
+      .price-card.popular { max-width: none; transform: none; }
+      .price-card.popular:hover { transform: translateY(-4px); }
+      .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+      .cta-section h2 { font-size: 1.8rem; }
+      .hero-sub { font-size: 1rem; }
+      .section-sub { font-size: 0.95rem; }
+      .stats-bar { padding: 40px 0; }
+      .footer-bottom { padding: 20px 0; font-size: 0.78rem; }
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: 0 16px; }
+      .hero h1 { font-size: 1.75rem; }
+      .hero-actions { flex-direction: column; }
+      .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+      .price-amount { font-size: 2.4rem; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .channels-row { grid-template-columns: 1fr; }
+      .stats-bar { grid-template-columns: 1fr; }
+      .hero { padding: 100px 0 50px; }
+      .section { padding: 56px 0; }
+      .section-title { font-size: 1.5rem; }
+      .benefit-card { padding: 28px 20px; }
+      .step-number { width: 72px; height: 72px; font-size: 1.5rem; }
+      .price-card { padding: 32px 24px; }
+      .cta-section { padding: 72px 0; }
+      .cta-section h2 { font-size: 1.5rem; }
+      .faq-question { padding: 18px 20px; font-size: 0.92rem; }
+      .faq-answer-inner { padding: 0 20px 18px; }
+      .footer { padding: 48px 0 0; }
+      .footer-grid { gap: 28px; margin-bottom: 32px; }
+    }
+
+    /* Touch-friendly improvements */
+    @media (hover: none) and (pointer: coarse) {
+      .nav-cta, .btn-primary, .btn-secondary, .price-btn, .cta-btn {
+        min-height: 48px;
+      }
+      .faq-question {
+        min-height: 56px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="nav" id="nav">
+    <div class="container nav-inner">
+      <a href="/" class="nav-logo">
+        <img src="/logo.svg" alt="AiYou Assist" class="nav-logo-icon" style="width:34px;height:34px;border-radius:8px;">
+        <span>AiYou</span> Assist
+      </a>
+      <div class="nav-links">
+        <a href="#beneficios">Benefícios</a>
+        <a href="#integracoes">Integrações</a>
+        <a href="#canais">Canais</a>
+        <a href="#planos">Planos</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://app.meuaiyou.cloud/login" class="nav-login" style="color:var(--primary);font-weight:600;text-decoration:none;padding:8px 16px;border-radius:8px;transition:background 0.2s;">Entrar</a>
+        <a href="https://app.meuaiyou.cloud/register" class="nav-cta">Começar Grátis</a>
+      </div>
+      <button class="nav-mobile-toggle" id="mobileToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav-mobile-menu" id="mobileMenu">
+      <a href="#beneficios">Benefícios</a>
+      <a href="#integracoes">Integrações</a>
+      <a href="#canais">Canais</a>
+      <a href="#planos">Planos</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://app.meuaiyou.cloud/login" style="text-align:center;color:var(--primary);font-weight:600;padding:10px;">Entrar</a>
+      <a href="https://app.meuaiyou.cloud/register" class="nav-cta" style="text-align:center;justify-content:center;">Começar Grátis</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div>
+          <div class="hero-badge">&#9889; Seu assistente de IA no WhatsApp, Telegram e Webchat &mdash; pessoal e profissional</div>
+          <h1>Seu assistente de IA <strong>multicanal</strong>, pronto para usar</h1>
+          <p class="hero-sub">WhatsApp, Telegram e Webchat integrados. Widget de chat para seu site, Base de Conhecimento inteligente, automação de tarefas, integrações nativas com CRM, ERP e mais. Para empresas e uso pessoal. Conecte e comece a usar agora.</p>
+          <div class="hero-actions">
+            <a href="https://app.meuaiyou.cloud/register" class="btn-primary">Começar Gratuitamente &rarr;</a>
+            <a href="#beneficios" class="btn-secondary">Ver Como Funciona</a>
+          </div>
+        </div>
+        <div>
+          <div class="phone-mockup">
+            <div class="phone-frame">
+              <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+              <div class="phone-chat-header">
+                <div class="phone-avatar">AI</div>
+                <div>
+                  <div class="phone-name">AiYou Assist</div>
+                  <div class="phone-status">online - IA ativa</div>
+                </div>
+              </div>
+              <div class="phone-body" id="chatDemo" style="scroll-behavior:smooth;">
+                <div class="bubble bubble-out chat-msg" data-delay="0">
+                  <div class="bubble-ai">&#128276; Mensagem proativa</div>
+                  <div>Bom dia! Você tem 3 reuniões hoje. A primeira é às 10h com a equipe de vendas.</div>
+                  <div class="bubble-time">08:15</div>
+                </div>
+                <div class="bubble bubble-in chat-msg" data-delay="2000">
+                  <div>Verifica meus emails novos</div>
+                  <div class="bubble-time">08:16</div>
+                </div>
+                <div class="bubble bubble-out chat-msg" data-delay="4000">
+                  <div class="bubble-ai">&#129302; IA</div>
+                  <div>Você tem 12 emails, 3 urgentes. MegaCorp perguntou sobre o prazo do projeto. Respondo com a previsão?</div>
+                  <div class="bubble-time">08:16</div>
+                </div>
+                <div class="bubble bubble-in chat-msg" data-delay="6000">
+                  <div>Sim, manda. E agenda lembrete 15h ligar pro Carlos</div>
+                  <div class="bubble-time">08:17</div>
+                </div>
+                <div class="bubble bubble-out chat-msg" data-delay="8000">
+                  <div class="bubble-ai">&#9989; Feito</div>
+                  <div>Email enviado para MegaCorp e lembrete agendado para 15h. Mais alguma coisa?</div>
+                  <div class="bubble-time">08:17</div>
+                </div>
+                <div class="bubble bubble-in chat-msg" data-delay="10000">
+                  <div>Qual o status do pedido #4820?</div>
+                  <div class="bubble-time">08:18</div>
+                </div>
+                <div class="bubble bubble-out chat-msg" data-delay="12000">
+                  <div class="bubble-ai">&#128230; ERP</div>
+                  <div>Pedido #4820: enviado ontem via Correios, chega amanhã até 18h. Código: BR829341052.</div>
+                  <div class="bubble-time">08:18</div>
+                </div>
+                <div class="bubble bubble-in chat-msg" data-delay="14000">
+                  <div>Quanto tenho de saldo no banco?</div>
+                  <div class="bubble-time">08:19</div>
+                </div>
+                <div class="bubble bubble-out chat-msg" data-delay="16000">
+                  <div class="bubble-ai">&#128179; Financeiro</div>
+                  <div>Saldo atual: R$ 12.450,00. Última entrada: R$ 3.200 de MegaCorp ontem. Próxima conta: luz R$ 280 vence dia 15.</div>
+                  <div class="bubble-time">08:19</div>
+                </div>
+                <div class="typing-dots chat-msg" data-delay="18000">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="section" style="padding: 0;">
+    <div class="container">
+      <div class="stats-bar reveal">
+        <div class="stat-item">
+          <h3>24/7</h3>
+          <p>Assistente sempre ativo</p>
+        </div>
+        <div class="stat-item">
+          <h3>&lt; 2s</h3>
+          <p>Tempo de resposta</p>
+        </div>
+        <div class="stat-item">
+          <h3>50+</h3>
+          <p>Integrações nativas</p>
+        </div>
+        <div class="stat-item">
+          <h3>100%</h3>
+          <p>Pronto para usar</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits -->
+  <section class="section section-alt" id="beneficios">
+    <div class="container">
+      <div class="section-label reveal">Benefícios</div>
+      <h2 class="section-title reveal">Tudo que um assistente de IA precisa ter</h2>
+      <p class="section-sub reveal">As mesmas funcionalidades dos melhores assistentes de IA do mercado, mas 100% na nuvem. Sem servidor, sem terminal, sem complicação.</p>
+      <div class="benefits-grid">
+        <div class="benefit-card reveal">
+          <span class="benefit-emoji">&#129504;</span>
+          <h3>Memória persistente</h3>
+          <p>A IA lembra de tudo: conversas anteriores, suas preferências, nomes, datas, contexto. Quanto mais você usa, mais inteligente ela fica. Nunca precisa repetir informações.</p>
+        </div>
+        <div class="benefit-card reveal">
+          <span class="benefit-emoji">&#128276;</span>
+          <h3>Mensagens proativas</h3>
+          <p>O assistente não espera você perguntar. Envia lembretes, follow-ups, resumos do dia, alertas de compromissos e notificações automaticamente. Funciona como um assistente real.</p>
+        </div>
+        <div class="benefit-card reveal">
+          <span class="benefit-emoji">&#9889;</span>
+          <h3>Automação de tarefas</h3>
+          <p>Gerencia emails, agenda compromissos, pesquisa informações, consulta pedidos, envia mensagens programadas, organiza sua rotina. Tudo pelo WhatsApp, sem sair da conversa.</p>
+        </div>
+        <div class="benefit-card reveal">
+          <span class="benefit-emoji">&#127911;</span>
+          <h3>Áudio e voz</h3>
+          <p>Envie áudios e a IA entende. Ela transcreve, interpreta e responde. Funciona com mensagens de voz do WhatsApp naturalmente, sem configurar nada.</p>
+        </div>
+        <div class="benefit-card reveal">
+          <span class="benefit-emoji">&#128268;</span>
+          <h3>50+ integrações nativas</h3>
+          <p>CRM, ERP, Helpdesk, E-commerce, calendário, email, webhooks, API personalizada. Tudo integrado de fábrica, funcionando desde o primeiro dia sem configurar APIs.</p>
+        </div>
+        <div class="benefit-card reveal">
+          <span class="benefit-emoji">&#128241;</span>
+          <h3>Zero configuração</h3>
+          <p>Diferente de outros assistentes que exigem servidor, terminal e conhecimento técnico, o AiYou Assist funciona 100% pelo navegador. Escaneie o QR Code e pronto. Qualquer pessoa consegue usar.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use cases -->
+  <section class="section">
+    <div class="container">
+      <div class="section-label reveal">O que a IA faz por você</div>
+      <h2 class="section-title reveal">Exemplos reais do dia a dia</h2>
+      <p class="section-sub reveal">Veja como o assistente funciona na prática, tanto para empresas quanto para uso pessoal.</p>
+      <div class="benefits-grid">
+        <div class="benefit-card reveal">
+          <span class="benefit-emoji">&#128188;</span>
+          <h3>Para empresas</h3>
+          <p>"Qual o status do pedido #4820?" — a IA consulta seu ERP e responde ao cliente em 2 segundos. Atendimento 24h, vendas, suporte, agendamentos, tudo automático.</p>
+        </div>
+        <div class="benefit-card reveal">
+          <span class="benefit-emoji">&#128197;</span>
+          <h3>Agenda e lembretes</h3>
+          <p>"Me lembra da reunião às 14h" — o assistente agenda e te avisa na hora. Gerencia compromissos, deadlines, follow-ups e reuniões sem você precisar de outro app.</p>
+        </div>
+        <div class="benefit-card reveal">
+          <span class="benefit-emoji">&#128231;</span>
+          <h3>Gerencia emails</h3>
+          <p>"Verifica meus emails novos" — a IA lê, resume e pode até responder seus emails. Filtra o que é urgente, descarta spam, e te mantém informado pelo WhatsApp.</p>
+        </div>
+        <div class="benefit-card reveal">
+          <span class="benefit-emoji">&#128269;</span>
+          <h3>Pesquisa qualquer coisa</h3>
+          <p>"Quais os melhores restaurantes perto de mim?" — pesquisa na web, compara preços, busca informações técnicas. Tudo direto no WhatsApp, sem abrir o navegador.</p>
+        </div>
+        <div class="benefit-card reveal">
+          <span class="benefit-emoji">&#128200;</span>
+          <h3>Relatórios e resumos</h3>
+          <p>"Resumo das vendas da semana" — a IA acessa seus dados e gera relatórios sob demanda. Números, gráficos, comparativos. Pede pelo WhatsApp, recebe na hora.</p>
+        </div>
+        <div class="benefit-card reveal">
+          <span class="benefit-emoji">&#128640;</span>
+          <h3>Fluxos automáticos</h3>
+          <p>Configure uma vez, funciona para sempre. Boas-vindas a novos clientes, follow-up pós-venda, cobrança automática, pesquisa de satisfação. Tudo no piloto automático.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-label reveal">Como funciona</div>
+      <h2 class="section-title reveal">4 passos para ter seu assistente de IA</h2>
+      <p class="section-sub reveal">Do zero ao assistente funcionando. Sem conhecimento técnico.</p>
+      <div class="steps-grid">
+        <div class="step step-1 reveal">
+          <div class="step-number">1</div>
+          <h3>Crie sua conta</h3>
+          <p>Em menos de 1 minuto. Cadastro rápido com email e senha, sem burocracia.</p>
+        </div>
+        <div class="step step-2 reveal">
+          <div class="step-number">2</div>
+          <h3>Conecte seus canais</h3>
+          <p>WhatsApp via QR Code, Telegram via @BotFather, Webchat com widget no seu site. Conecte em segundos, sem instalar nada.</p>
+        </div>
+        <div class="step step-3 reveal">
+          <div class="step-number">3</div>
+          <h3>A IA já funciona</h3>
+          <p>Sem configurar nada, o assistente já começa a responder com inteligência. Funciona de imediato.</p>
+        </div>
+        <div class="step step-4 reveal">
+          <div class="step-number">4</div>
+          <h3>Personalize se quiser</h3>
+          <p>Tom de voz, regras, integrações, fluxos de atendimento — tudo opcional, no seu ritmo.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Integrations -->
+  <section class="section section-alt" id="integracoes">
+    <div class="container">
+      <div class="section-label reveal">Integrações</div>
+      <h2 class="section-title reveal">50+ integrações nativas, sem configurar nada</h2>
+      <p class="section-sub reveal">Diferente de outros assistentes que exigem integração manual, aqui tudo já vem pronto. A IA acessa seus sistemas durante a conversa.</p>
+      <div class="integrations-grid">
+        <div class="integ-card reveal">
+          <div class="integ-icon integ-icon-blue">&#128188;</div>
+          <div>
+            <h3>CRM (Gestão de Clientes)</h3>
+            <p>Contatos organizados automaticamente. A IA consulta dados, cria registros, atualiza informações e acompanha o histórico de cada cliente sem você precisar fazer nada.</p>
+            <span class="integ-tag tag-active">Nativo</span>
+          </div>
+        </div>
+        <div class="integ-card reveal">
+          <div class="integ-icon integ-icon-purple">&#128230;</div>
+          <div>
+            <h3>ERP (Gestão Empresarial)</h3>
+            <p>Consulte estoque, pedidos, prazos, financeiro direto na conversa. A IA acessa seu sistema de gestão e traz informações em tempo real pelo WhatsApp.</p>
+            <span class="integ-tag tag-active">Nativo</span>
+          </div>
+        </div>
+        <div class="integ-card reveal">
+          <div class="integ-icon integ-icon-orange">&#127915;</div>
+          <div>
+            <h3>Helpdesk (Suporte Técnico)</h3>
+            <p>Abra chamados, acompanhe soluções, escale problemas. A IA gerencia tickets, consulta status e resolve automaticamente.</p>
+            <span class="integ-tag tag-active">Nativo</span>
+          </div>
+        </div>
+        <div class="integ-card reveal">
+          <div class="integ-icon integ-icon-green">&#128722;</div>
+          <div>
+            <h3>E-commerce (Loja Virtual)</h3>
+            <p>Catálogo de produtos, rastreio de entregas, processamento de pedidos, consulta de preços. Tudo pelo WhatsApp, integrado com sua loja.</p>
+            <span class="integ-tag tag-active">Nativo</span>
+          </div>
+        </div>
+        <div class="integ-card reveal">
+          <div class="integ-icon integ-icon-teal">&#128197;</div>
+          <div>
+            <h3>Calendário e Agenda</h3>
+            <p>Agende compromissos, receba lembretes, gerencie reuniões. A IA sincroniza com seu calendário e te avisa proativamente sobre os próximos eventos.</p>
+            <span class="integ-tag tag-active">Nativo</span>
+          </div>
+        </div>
+        <div class="integ-card reveal">
+          <div class="integ-icon integ-icon-red">&#128231;</div>
+          <div>
+            <h3>Email e Comunicação</h3>
+            <p>A IA lê, resume e responde seus emails. Filtra urgências, descarta spam, envia respostas automáticas. Gerencie toda comunicação pelo WhatsApp.</p>
+            <span class="integ-tag tag-active">Nativo</span>
+          </div>
+        </div>
+        <div class="integ-card reveal">
+          <div class="integ-icon integ-icon-purple">&#128218;</div>
+          <div>
+            <h3>Base de Conhecimento</h3>
+            <p>Cadastre artigos, FAQs e documentos. A IA consulta automaticamente durante as conversas para dar respostas precisas e personalizadas ao seu negócio.</p>
+            <span class="integ-tag tag-active">Nativo</span>
+          </div>
+        </div>
+        <div class="integ-card reveal">
+          <div class="integ-icon integ-icon-blue">&#128279;</div>
+          <div>
+            <h3>Webhooks (Tempo Real)</h3>
+            <p>Eventos em tempo real para seu sistema. Notificações automáticas de mensagens, conexões, conversas e ações executadas pela IA.</p>
+            <span class="integ-tag tag-active">Nativo</span>
+          </div>
+        </div>
+        <div class="integ-card reveal">
+          <div class="integ-icon integ-icon-purple">&#128295;</div>
+          <div>
+            <h3>API Personalizada</h3>
+            <p>Conecte qualquer sistema externo. A IA acessa seus dados e executa ações no seu sistema durante a conversa via API REST.</p>
+            <span class="integ-tag tag-active">Nativo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Channels -->
+  <section class="section section-dark" id="canais">
+    <div class="container">
+      <div class="section-label reveal" style="color: var(--primary-light);">Canais</div>
+      <h2 class="section-title reveal">Seu assistente em todas as plataformas</h2>
+      <p class="section-sub reveal">Mesmo assistente, mesma memória, em qualquer plataforma. WhatsApp, Telegram e Webchat já funcionam. Mais canais estão chegando.</p>
+      <div class="channels-row reveal">
+        <div class="channel-card active">
+          <span class="channel-emoji">&#128172;</span>
+          <h4>WhatsApp</h4>
+          <p>Conexão via QR Code direto no painel</p>
+          <span class="channel-badge channel-badge-active">Ativo</span>
+        </div>
+        <div class="channel-card active">
+          <span class="channel-emoji">&#9992;&#65039;</span>
+          <h4>Telegram</h4>
+          <p>Bot integrado com atendimento IA</p>
+          <span class="channel-badge channel-badge-active">Ativo</span>
+        </div>
+        <div class="channel-card active">
+          <span class="channel-emoji">&#127760;</span>
+          <h4>Webchat</h4>
+          <p>Widget de chat embeddable no seu site</p>
+          <span class="channel-badge channel-badge-active">Ativo</span>
+        </div>
+        <div class="channel-card">
+          <span class="channel-emoji">&#127918;</span>
+          <h4>Discord</h4>
+          <p>Atendimento em servidores e DMs</p>
+          <span class="channel-badge channel-badge-soon">Em breve</span>
+        </div>
+        <div class="channel-card">
+          <span class="channel-emoji">&#128172;</span>
+          <h4>Slack</h4>
+          <p>Suporte interno via Slack</p>
+          <span class="channel-badge channel-badge-soon">Em breve</span>
+        </div>
+        <div class="channel-card">
+          <span class="channel-emoji">&#128231;</span>
+          <h4>Email</h4>
+          <p>Respostas automáticas por email</p>
+          <span class="channel-badge channel-badge-soon">Em breve</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="section" id="planos">
+    <div class="container">
+      <div class="section-label reveal">Planos</div>
+      <h2 class="section-title reveal">Escolha o plano ideal para seu negócio</h2>
+      <p class="section-sub reveal">Todos os planos incluem IA, painel completo e suporte. Pague via PIX, boleto ou cartão de crédito.</p>
+      <div class="pricing-grid">
+
+        <div class="price-card reveal">
+          <h3>Starter</h3>
+          <div class="price-amount">R$ 49<span>,90/mês</span></div>
+          <div class="price-period">Para quem está começando</div>
+          <ul class="price-features">
+            <li>1 WhatsApp + 1 Telegram + 1 Webchat</li>
+            <li>1.000 respostas da IA por mês</li>
+            <li>Base de Conhecimento (até 50 artigos)</li>
+            <li>Memória persistente</li>
+            <li>Mensagens proativas</li>
+            <li>Áudio e voz</li>
+            <li>Suporte por email</li>
+          </ul>
+          <a href="https://app.meuaiyou.cloud/register" class="price-btn">Começar Agora</a>
+        </div>
+
+        <div class="price-card popular reveal">
+          <div class="price-badge">Mais Popular</div>
+          <h3>Pro</h3>
+          <div class="price-amount">R$ 99<span>,90/mês</span></div>
+          <div class="price-period">Para empresas em crescimento</div>
+          <ul class="price-features">
+            <li>3 WhatsApp + 3 Telegram + 3 Webchat</li>
+            <li>5.000 respostas da IA por mês</li>
+            <li>Base de Conhecimento ilimitada</li>
+            <li>Memória persistente</li>
+            <li>Automação de tarefas</li>
+            <li>Todas as integrações</li>
+            <li>Webhooks em tempo real</li>
+            <li>Log de conversas completo</li>
+            <li>Suporte prioritário</li>
+          </ul>
+          <a href="https://app.meuaiyou.cloud/register" class="price-btn">Começar Agora</a>
+        </div>
+
+        <div class="price-card reveal">
+          <h3>Enterprise</h3>
+          <div class="price-amount">R$ 249<span>,90/mês</span></div>
+          <div class="price-period">Para grandes operações</div>
+          <ul class="price-features">
+            <li>10 WhatsApp + 10 Telegram + Webchat ilimitado</li>
+            <li>50.000 respostas da IA por mês</li>
+            <li>Base de Conhecimento ilimitada</li>
+            <li>Memória persistente ilimitada</li>
+            <li>Automação completa</li>
+            <li>Todas as integrações + API</li>
+            <li>Webhooks + logs + auditoria</li>
+            <li>Log de conversas em tempo real</li>
+            <li>SLA e gerente dedicado</li>
+          </ul>
+          <a href="https://app.meuaiyou.cloud/register" class="price-btn">Começar Agora</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section section-alt" id="faq">
+    <div class="container">
+      <div class="section-label reveal">Dúvidas Frequentes</div>
+      <h2 class="section-title reveal">Perguntas que todo mundo faz</h2>
+      <p class="section-sub reveal">Se sua dúvida não está aqui, fale com a gente pelo WhatsApp.</p>
+      <div class="faq-list">
+        <div class="faq-item reveal">
+          <button class="faq-question">Preciso instalar alguma coisa?</button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">Não! Tudo funciona pelo navegador. Para WhatsApp, escaneie um QR Code igual ao WhatsApp Web. Para Telegram, cole o token do @BotFather. Para Webchat, copie um snippet de código e cole no seu site. Nenhum aplicativo, nenhum download, nenhum servidor para configurar. Está tudo pronto para usar.</div>
+          </div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question">Posso usar como assistente pessoal?</button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">Sim! O AiYou Assist não é só para empresas. Você pode usar como assistente pessoal no WhatsApp: organizar tarefas, receber lembretes de compromissos, pesquisar informações, gerenciar sua agenda e muito mais. A IA lembra do contexto das suas conversas, então funciona como um assistente que realmente te conhece.</div>
+          </div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question">A IA vai parecer um robô?</button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">Não. A inteligência artificial do AiYou Assist conversa de forma natural e possui memória persistente — ela lembra de conversas anteriores, preferências e contexto. Isso faz com que cada interação seja mais inteligente e personalizada. Você configura o tom de voz e as regras, e a maioria das pessoas nem percebe que está falando com IA.</div>
+          </div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question">E se a IA não souber responder?</button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">A IA aprende com o contexto que você configura. Se ela não souber algo, informa educadamente e pode sugerir alternativas. Você define as regras do que ela pode ou não responder, e pode ajustar a qualquer momento pelo painel.</div>
+          </div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question">Qual a diferença pro outros assistentes de IA?</button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">A maioria dos assistentes de IA exige que você instale em um servidor, configure terminal, tenha conhecimento técnico e pague separadamente pela API de IA. O AiYou Assist oferece as mesmas funcionalidades (memória persistente, mensagens proativas, automação, integrações) mas 100% na nuvem. Você só escaneia o QR Code e começa a usar. Sem servidor, sem código, sem manutenção.</div>
+          </div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question">As integrações precisam de configuração técnica?</button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">Não. As integrações com CRM, ERP, Helpdesk e E-commerce já vêm nativas na plataforma — funcionam de fábrica. Não precisa configurar APIs, escrever código ou contratar desenvolvedor. Tudo já está pronto para usar desde o primeiro dia.</div>
+          </div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question">Posso conectar mais de um número de WhatsApp?</button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">Sim! Dependendo do seu plano, você pode conectar de 1 a 10 números de WhatsApp simultaneamente. Cada número funciona de forma independente, com suas próprias configurações de IA.</div>
+          </div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question">Quais formas de pagamento vocês aceitam?</button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">Aceitamos PIX, boleto bancário e cartão de crédito. Para clientes internacionais, também aceitamos pagamento via Stripe. O pagamento é mensal e você pode cancelar a qualquer momento.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <h2 class="reveal">Seu assistente de IA está esperando</h2>
+      <p class="reveal">Crie sua conta, conecte o WhatsApp e comece a usar em menos de 1 minuto. Tudo pronto, sem configurar nada.</p>
+      <a href="https://app.meuaiyou.cloud/register" class="cta-btn reveal">Criar Minha Conta Grátis &rarr;</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo"><img src="/logo.svg" alt="AiYou" style="width:28px;height:28px;border-radius:6px;display:inline-block;vertical-align:middle;margin-right:8px;"><span>AiYou</span> Assist</div>
+          <p>Plataforma completa de assistente de IA para WhatsApp. Uso pessoal e profissional. Conecte, comece a usar e tenha um assistente inteligente 24 horas por dia, 7 dias por semana.</p>
+        </div>
+        <div>
+          <h4>Produto</h4>
+          <ul>
+            <li><a href="#beneficios">Benefícios</a></li>
+            <li><a href="#integracoes">Integrações</a></li>
+            <li><a href="#canais">Canais</a></li>
+            <li><a href="#planos">Planos</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Plataforma</h4>
+          <ul>
+            <li><a href="https://app.meuaiyou.cloud">Acessar Painel</a></li>
+            <li><a href="https://app.meuaiyou.cloud/register">Criar Conta</a></li>
+            <li><a href="https://app.meuaiyou.cloud/login">Entrar</a></li>
+            <li><a href="#faq">Dúvidas</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Termos de Uso</a></li>
+            <li><a href="#">Privacidade</a></li>
+            <li><a href="#">LGPD</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2026 AiYou Assist. Todos os direitos reservados.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating WhatsApp -->
+  <a href="https://wa.me/" class="whatsapp-float" aria-label="WhatsApp" target="_blank" rel="noopener">
+    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16.004 0C7.175 0 .002 7.173.002 16.002c0 2.822.736 5.573 2.136 7.998L.012 32l8.22-2.096A15.93 15.93 0 0016.004 32C24.832 32 32 24.827 32 15.998 32 7.173 24.832 0 16.004 0zm0 29.39a13.35 13.35 0 01-7.09-2.032l-.508-.303-4.88 1.244 1.302-4.727-.33-.527A13.33 13.33 0 012.61 16.002c0-7.39 6.006-13.396 13.394-13.396 7.39 0 13.394 6.006 13.394 13.396 0 7.386-6.004 13.388-13.394 13.388zm7.342-10.027c-.402-.202-2.38-1.175-2.748-1.31-.37-.133-.638-.2-.907.202-.268.4-1.04 1.31-1.276 1.578-.234.268-.47.3-.872.1-.4-.2-1.692-.623-3.224-1.99-1.192-1.064-1.996-2.378-2.23-2.78-.234-.4-.024-.618.176-.818.18-.18.4-.468.602-.702.2-.234.268-.4.4-.668.134-.268.068-.502-.032-.702-.1-.2-.906-2.184-1.242-2.99-.326-.784-.66-.678-.906-.69l-.772-.014c-.268 0-.704.1-1.072.502-.368.4-1.408 1.376-1.408 3.358 0 1.982 1.442 3.896 1.642 4.164.2.268 2.836 4.33 6.874 6.07.96.416 1.71.664 2.294.85.964.306 1.842.264 2.536.16.774-.116 2.38-.974 2.716-1.914.336-.94.336-1.746.234-1.914-.1-.168-.368-.268-.77-.468z"/></svg>
+  </a>
+
+  <script>
+    // Mobile nav
+    (function() {
+      var toggle = document.getElementById('mobileToggle');
+      var menu = document.getElementById('mobileMenu');
+      toggle.addEventListener('click', function() { menu.classList.toggle('open'); });
+      menu.querySelectorAll('a').forEach(function(a) {
+        a.addEventListener('click', function() { menu.classList.remove('open'); });
+      });
+    })();
+
+    // Nav scroll
+    (function() {
+      var nav = document.getElementById('nav');
+      window.addEventListener('scroll', function() {
+        nav.classList.toggle('scrolled', window.scrollY > 10);
+      }, { passive: true });
+    })();
+
+    // Scroll reveal
+    (function() {
+      var els = document.querySelectorAll('.reveal');
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+          if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+      els.forEach(function(el) { observer.observe(el); });
+    })();
+
+    // FAQ accordion
+    (function() {
+      document.querySelectorAll('.faq-question').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var item = btn.parentElement;
+          var wasOpen = item.classList.contains('open');
+          document.querySelectorAll('.faq-item').forEach(function(i) { i.classList.remove('open'); });
+          if (!wasOpen) item.classList.add('open');
+        });
+      });
+    })();
+
+    // Chat demo animation
+    (function() {
+      var msgs = document.querySelectorAll('.chat-msg');
+      var chatBody = document.getElementById('chatDemo');
+      if (!msgs.length || !chatBody) return;
+      // Hide all initially
+      msgs.forEach(function(m) { m.style.opacity = '0'; m.style.transform = 'translateY(16px)'; m.style.transition = 'opacity 0.4s ease, transform 0.4s ease'; });
+      var shown = 0;
+      function showNext() {
+        if (shown >= msgs.length) {
+          // Reset and loop after pause
+          setTimeout(function() {
+            msgs.forEach(function(m) { m.style.opacity = '0'; m.style.transform = 'translateY(16px)'; });
+            chatBody.scrollTop = 0;
+            shown = 0;
+            setTimeout(showNext, 1000);
+          }, 4000);
+          return;
+        }
+        msgs[shown].style.opacity = '1';
+        msgs[shown].style.transform = 'translateY(0)';
+        chatBody.scrollTop = chatBody.scrollHeight;
+        shown++;
+        setTimeout(showNext, 2000);
+      }
+      // Start when hero is visible
+      var heroObs = new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting) {
+          heroObs.disconnect();
+          setTimeout(showNext, 500);
+        }
+      }, { threshold: 0.3 });
+      heroObs.observe(chatBody.closest('.hero') || chatBody);
+    })();
+  </script>
+</body>
+</html>

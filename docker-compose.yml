@@ -1,0 +1,620 @@
+version: "3.9"
+
+# =============================================================================
+# AIYOU ASSIST - Multi-Tenant WhatsApp AI SaaS
+# Container-First Architecture
+# =============================================================================
+
+networks:
+  public:
+    driver: bridge
+    name: aiyou-public
+  private:
+    driver: bridge
+    name: aiyou-private
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  whatsapp_sessions:
+  nginx_certs:
+
+x-common-env: &common-env
+  TZ: America/Sao_Paulo
+  NODE_ENV: production
+  APP_ENV: ${APP_ENV:-production}
+
+x-healthcheck-defaults: &healthcheck-defaults
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # ===========================================================================
+  # LAYER 0 - INFRASTRUCTURE
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # Reverse Proxy & SSL Termination
+  # ---------------------------------------------------------------------------
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: aiyou-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certs:/etc/nginx/certs:ro
+      - ./services/frontend-web/public/site:/usr/share/nginx/site:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    networks:
+      - public
+      - private
+    depends_on:
+      - frontend-web
+      - core-api
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "nginx", "-t"]
+    logging: *logging
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL - Primary Database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: aiyou-postgres
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER:-aiyou}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      POSTGRES_DB: ${DB_NAME:-aiyou_assist}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - private
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-aiyou} -d ${DB_NAME:-aiyou_assist}"]
+    logging: *logging
+
+  # ---------------------------------------------------------------------------
+  # Redis - Cache & Sessions
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: aiyou-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - private
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+    logging: *logging
+
+  # ---------------------------------------------------------------------------
+  # RabbitMQ - Message Queue
+  # ---------------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: aiyou-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-aiyou}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - private
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+    logging: *logging
+
+  # ===========================================================================
+  # LAYER 1 - FRONTEND
+  # ===========================================================================
+
+  frontend-web:
+    build:
+      context: ./services/frontend-web
+      dockerfile: Dockerfile
+    image: aiyou/frontend-web:${VERSION:-latest}
+    container_name: aiyou-frontend-web
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      VITE_API_URL: ${API_URL:-https://api.meuaiyou.cloud}
+      VITE_WS_URL: ${WS_URL:-wss://api.meuaiyou.cloud}
+    networks:
+      - public
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000/health || exit 1"]
+    logging: *logging
+
+  # ===========================================================================
+  # LAYER 2 - API GATEWAY
+  # ===========================================================================
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    image: aiyou/api-gateway:${VERSION:-latest}
+    container_name: aiyou-api-gateway
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      CORE_API_URL: http://core-api:8000
+      BILLING_API_URL: http://billing-api:8001
+      WHATSAPP_SERVICE_URL: http://whatsapp-service:8002
+      AI_ORCHESTRATOR_URL: http://ai-orchestrator:8003
+      CUSTOMER_API_URL: http://customer-api-service:8004
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-60}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
+    networks:
+      - public
+      - private
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+    logging: *logging
+
+  # ===========================================================================
+  # LAYER 3 - CORE BUSINESS API (Laravel)
+  # ===========================================================================
+
+  core-api:
+    build:
+      context: ./services/core-api
+      dockerfile: Dockerfile
+    image: aiyou/core-api:${VERSION:-latest}
+    container_name: aiyou-core-api
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      APP_KEY: ${APP_KEY:?APP_KEY is required}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_NAME:-aiyou_assist}
+      DB_USERNAME: ${DB_APP_USER:-aiyou_app}
+      DB_PASSWORD: ${DB_APP_PASSWORD:-${DB_PASSWORD}}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      QUEUE_CONNECTION: redis
+      CLAUDBOT_URL: http://whatsapp-service:8002
+      CLAUDBOT_WEBHOOK_SECRET: ${CLAUDBOT_WEBHOOK_SECRET}
+      CLAUDBOT_INTERNAL_KEY: ${CORE_API_INTERNAL_KEY:-}
+      AI_ORCHESTRATOR_URL: http://ai-orchestrator:8003
+      TELEGRAM_SERVICE_URL: http://telegram-service:8005
+      TELEGRAM_INTERNAL_KEY: ${CORE_API_INTERNAL_KEY:-}
+      WEBCHAT_SERVICE_URL: http://webchat-service:8006
+      WEBCHAT_INTERNAL_KEY: ${CORE_API_INTERNAL_KEY:-}
+      WEBCHAT_PUBLIC_URL: ${WEBCHAT_PUBLIC_URL:-https://chat.meuaiyou.cloud}
+    networks:
+      - public
+      - private
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
+    logging: *logging
+
+  core-worker:
+    build:
+      context: ./services/core-api
+      dockerfile: Dockerfile
+    image: aiyou/core-api:${VERSION:-latest}
+    container_name: aiyou-core-worker
+    restart: unless-stopped
+    command: ["php", "artisan", "queue:work", "--queue=ai-processing,default", "--sleep=3", "--tries=3", "--max-time=3600"]
+    environment:
+      <<: *common-env
+      APP_KEY: ${APP_KEY}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_NAME:-aiyou_assist}
+      DB_USERNAME: ${DB_APP_USER:-aiyou_app}
+      DB_PASSWORD: ${DB_APP_PASSWORD:-${DB_PASSWORD}}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      QUEUE_CONNECTION: redis
+      CLAUDBOT_URL: http://whatsapp-service:8002
+      CLAUDBOT_INTERNAL_KEY: ${CORE_API_INTERNAL_KEY:-}
+      TELEGRAM_SERVICE_URL: http://telegram-service:8005
+      TELEGRAM_INTERNAL_KEY: ${CORE_API_INTERNAL_KEY:-}
+      WEBCHAT_SERVICE_URL: http://webchat-service:8006
+      WEBCHAT_INTERNAL_KEY: ${CORE_API_INTERNAL_KEY:-}
+      AI_ORCHESTRATOR_URL: http://ai-orchestrator:8003
+    networks:
+      - private
+    depends_on:
+      core-api:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    logging: *logging
+
+  # ===========================================================================
+  # LAYER 4 - BILLING & FINANCE
+  # ===========================================================================
+
+  billing-api:
+    build:
+      context: ./services/billing-api
+      dockerfile: Dockerfile
+    image: aiyou/billing-api:${VERSION:-latest}
+    container_name: aiyou-billing-api
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgres://${DB_USER:-aiyou}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-aiyou_assist}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-aiyou}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      ASAAS_API_KEY: ${ASAAS_API_KEY}
+      ASAAS_WEBHOOK_SECRET: ${ASAAS_WEBHOOK_SECRET}
+    networks:
+      - private
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8001/health"]
+    logging: *logging
+
+  billing-worker:
+    build:
+      context: ./services/billing-api
+      dockerfile: Dockerfile
+    image: aiyou/billing-api:${VERSION:-latest}
+    container_name: aiyou-billing-worker
+    restart: unless-stopped
+    command: ["node", "dist/worker.js"]
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgres://${DB_USER:-aiyou}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-aiyou_assist}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-aiyou}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      ASAAS_API_KEY: ${ASAAS_API_KEY}
+    networks:
+      - private
+    depends_on:
+      - billing-api
+    logging: *logging
+
+  # ===========================================================================
+  # LAYER 5 - WHATSAPP SERVICE (Moltbot Gateway + Baileys)
+  # ===========================================================================
+
+  # ---------------------------------------------------------------------------
+  # WhatsApp Service - Direct Baileys Integration
+  # ---------------------------------------------------------------------------
+  whatsapp-service:
+    build:
+      context: ./services/whatsapp-service
+      dockerfile: Dockerfile
+    image: aiyou/whatsapp-service:${VERSION:-latest}
+    container_name: aiyou-whatsapp-service
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgres://${DB_USER:-aiyou}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-aiyou_assist}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-aiyou}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      SESSION_ENCRYPTION_KEY: ${SESSION_ENCRYPTION_KEY:?SESSION_ENCRYPTION_KEY is required}
+      AI_ORCHESTRATOR_URL: http://ai-orchestrator:8003
+      CORE_API_URL: http://core-api:8000
+      CORE_API_INTERNAL_KEY: ${CORE_API_INTERNAL_KEY:-}
+    volumes:
+      - whatsapp_sessions:/app/sessions
+    networks:
+      - private
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8002/health"]
+    logging: *logging
+
+  whatsapp-worker:
+    build:
+      context: ./services/whatsapp-service
+      dockerfile: Dockerfile
+    image: aiyou/whatsapp-service:${VERSION:-latest}
+    container_name: aiyou-whatsapp-worker
+    restart: unless-stopped
+    command: ["node", "dist/worker.js"]
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgres://${DB_USER:-aiyou}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-aiyou_assist}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-aiyou}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      SESSION_ENCRYPTION_KEY: ${SESSION_ENCRYPTION_KEY}
+    volumes:
+      - whatsapp_sessions:/app/sessions
+    networks:
+      - private
+    depends_on:
+      - whatsapp-service
+    logging: *logging
+
+  # ---------------------------------------------------------------------------
+  # Telegram Service - Telegram Bot Integration
+  # ---------------------------------------------------------------------------
+  telegram-service:
+    build:
+      context: ./services/telegram-service
+      dockerfile: Dockerfile
+    image: aiyou/telegram-service:${VERSION:-latest}
+    container_name: aiyou-telegram-service
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgres://${DB_USER:-aiyou}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-aiyou_assist}
+      CORE_API_URL: http://core-api:8000
+      CORE_API_INTERNAL_KEY: ${CORE_API_INTERNAL_KEY:-}
+    networks:
+      - private
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8005/health"]
+    logging: *logging
+
+  # ---------------------------------------------------------------------------
+  # Webchat Service - Embeddable Chat Widget
+  # ---------------------------------------------------------------------------
+  webchat-service:
+    build:
+      context: ./services/webchat-service
+      dockerfile: Dockerfile
+    image: aiyou/webchat-service:${VERSION:-latest}
+    container_name: aiyou-webchat-service
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgres://${DB_USER:-aiyou}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-aiyou_assist}
+      CORE_API_URL: http://core-api:8000
+      CORE_API_INTERNAL_KEY: ${CORE_API_INTERNAL_KEY:-}
+    ports:
+      - "8006:8006"
+    networks:
+      - private
+      - public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8006/health"]
+    logging: *logging
+
+  # ===========================================================================
+  # LAYER 6 - AI ORCHESTRATOR
+  # ===========================================================================
+
+  ai-orchestrator:
+    build:
+      context: ./services/ai-orchestrator
+      dockerfile: Dockerfile
+    image: aiyou/ai-orchestrator:${VERSION:-latest}
+    container_name: aiyou-ai-orchestrator
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgres://${DB_USER:-aiyou}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-aiyou_assist}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-aiyou}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY is required}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      CUSTOMER_API_URL: http://customer-api-service:8004
+      CORE_API_URL: http://core-api:8000
+      CORE_API_INTERNAL_KEY: ${CORE_API_INTERNAL_KEY:-}
+      MAX_TOKENS_PER_REQUEST: ${MAX_TOKENS_PER_REQUEST:-4096}
+      DEFAULT_MODEL: ${DEFAULT_MODEL:-claude-sonnet-4-20250514}
+    networks:
+      - private
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8003/health"]
+    logging: *logging
+
+  ai-worker:
+    build:
+      context: ./services/ai-orchestrator
+      dockerfile: Dockerfile
+    image: aiyou/ai-orchestrator:${VERSION:-latest}
+    container_name: aiyou-ai-worker
+    restart: unless-stopped
+    command: ["node", "dist/worker.js"]
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgres://${DB_USER:-aiyou}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-aiyou_assist}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-aiyou}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    networks:
+      - private
+    depends_on:
+      - ai-orchestrator
+    logging: *logging
+
+  # ===========================================================================
+  # LAYER 7 - CUSTOMER API INTEGRATION
+  # ===========================================================================
+
+  customer-api-service:
+    build:
+      context: ./services/customer-api-service
+      dockerfile: Dockerfile
+    image: aiyou/customer-api-service:${VERSION:-latest}
+    container_name: aiyou-customer-api-service
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgres://${DB_USER:-aiyou}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-aiyou_assist}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-aiyou}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY:?CREDENTIAL_ENCRYPTION_KEY is required}
+      CIRCUIT_BREAKER_THRESHOLD: ${CIRCUIT_BREAKER_THRESHOLD:-5}
+      CIRCUIT_BREAKER_TIMEOUT: ${CIRCUIT_BREAKER_TIMEOUT:-30000}
+    networks:
+      - private
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8004/health"]
+    logging: *logging
+
+  customer-api-worker:
+    build:
+      context: ./services/customer-api-service
+      dockerfile: Dockerfile
+    image: aiyou/customer-api-service:${VERSION:-latest}
+    container_name: aiyou-customer-api-worker
+    restart: unless-stopped
+    command: ["node", "dist/worker.js"]
+    environment:
+      <<: *common-env
+      DATABASE_URL: postgres://${DB_USER:-aiyou}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-aiyou_assist}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-aiyou}:${RABBITMQ_PASSWORD}@rabbitmq:5672
+      CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY}
+    networks:
+      - private
+    depends_on:
+      - customer-api-service
+    logging: *logging
+
+  # ===========================================================================
+  # LAYER 8 - OBSERVABILITY & AUDIT
+  # ===========================================================================
+
+  # Loki - Log Aggregation
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: aiyou-loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./infra/loki/loki-config.yaml:/etc/loki/local-config.yaml:ro
+    networks:
+      - private
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3100/ready"]
+    logging: *logging
+
+  # Promtail - Log Shipper
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: aiyou-promtail
+    restart: unless-stopped
+    volumes:
+      - ./infra/promtail/promtail-config.yaml:/etc/promtail/config.yaml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - private
+    depends_on:
+      - loki
+    logging: *logging
+
+  # Prometheus - Metrics
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: aiyou-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - private
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+    logging: *logging
+
+  # Grafana - Dashboards
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: aiyou-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD is required}
+      GF_USERS_ALLOW_SIGN_UP: false
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - private
+      - public
+    depends_on:
+      - prometheus
+      - loki
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+    logging: *logging

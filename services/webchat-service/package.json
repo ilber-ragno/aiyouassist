@@ -1,0 +1,25 @@
+{
+  "name": "@aiyou/webchat-service",
+  "version": "1.0.0",
+  "description": "AiYou Assist - Webchat Widget Service",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "pino": "^8.17.2",
+    "pino-http": "^9.0.0",
+    "socket.io": "^4.7.4",
+    "socket.io-client": "^4.7.4",
+    "uuid": "^9.0.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

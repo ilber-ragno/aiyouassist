@@ -1,0 +1,22 @@
+{
+  "gateway": {
+    "bind": "0.0.0.0",
+    "port": 18789
+  },
+  "channels": {
+    "whatsapp": {
+      "enabled": true,
+      "groups": {
+        "*": {
+          "requireMention": true
+        }
+      }
+    }
+  },
+  "agent": {
+    "enabled": false
+  },
+  "security": {
+    "autoApproveLocal": true
+  }
+}

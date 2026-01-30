@@ -1,0 +1,50 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# MCP config (contains API keys)
+.mcp.json
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build artifacts
+dist/
+build/
+
+# SSL Certificates (sensitive)
+certs/*.pem
+certs/*.key
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Docker volumes data (local only)
+postgres_data/
+redis_data/
+rabbitmq_data/
+
+# WhatsApp sessions (sensitive)
+sessions/
+
+# PHP
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+
+# Temp
+tmp/
+.tmp/

@@ -1,0 +1,74 @@
+# =============================================================================
+# AIYOU ASSIST - Prometheus Configuration
+# =============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'aiyou-production'
+    environment: 'production'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files: []
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # API Gateway metrics
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:8080']
+    metrics_path: /metrics
+
+  # Core API (Laravel)
+  - job_name: 'core-api'
+    static_configs:
+      - targets: ['core-api:8000']
+    metrics_path: /metrics
+
+  # Billing API
+  - job_name: 'billing-api'
+    static_configs:
+      - targets: ['billing-api:8001']
+    metrics_path: /metrics
+
+  # WhatsApp Service
+  - job_name: 'whatsapp-service'
+    static_configs:
+      - targets: ['whatsapp-service:8002']
+    metrics_path: /metrics
+
+  # AI Orchestrator
+  - job_name: 'ai-orchestrator'
+    static_configs:
+      - targets: ['ai-orchestrator:8003']
+    metrics_path: /metrics
+
+  # Customer API Service
+  - job_name: 'customer-api-service'
+    static_configs:
+      - targets: ['customer-api-service:8004']
+    metrics_path: /metrics
+
+  # PostgreSQL
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+
+  # RabbitMQ
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']

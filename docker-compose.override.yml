@@ -1,0 +1,152 @@
+# =============================================================================
+# AIYOU ASSIST - Resource Protection
+# Protege contra travamento por excesso de serviços
+# Server: 8GB RAM / 2 CPUs
+# =============================================================================
+
+services:
+  # INFRASTRUCTURE
+  postgres:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1024M
+        reservations:
+          memory: 256M
+    shm_size: '256m'
+
+  redis:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          memory: 64M
+
+  rabbitmq:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 512M
+        reservations:
+          memory: 128M
+
+  # APPLICATION
+  nginx:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 128M
+
+  frontend-web:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 128M
+
+  api-gateway:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=200
+
+  core-api:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  core-worker:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+  whatsapp-service:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=200
+
+  whatsapp-worker:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 192M
+
+  ai-orchestrator:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.30'
+          memory: 384M
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=300
+
+  ai-worker:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 256M
+
+  customer-api-service:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.20'
+          memory: 256M
+
+  customer-api-worker:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 192M
+
+  # OBSERVABILITY - disabled by default (use --profile obs)
+  loki:
+    profiles: ["obs"]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 256M
+
+  promtail:
+    profiles: ["obs"]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.10'
+          memory: 128M
+
+  prometheus:
+    profiles: ["obs"]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 256M
+
+  grafana:
+    profiles: ["obs"]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 256M
